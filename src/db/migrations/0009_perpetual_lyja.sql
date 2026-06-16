@@ -1,0 +1,2 @@
+ALTER TABLE "exams" ADD COLUMN "course_id" uuid;--> statement-breakpoint
+ALTER TABLE "exams" ADD CONSTRAINT "exams_course_id_courses_id_fk" FOREIGN KEY ("course_id") REFERENCES "public"."courses"("id") ON DELETE set null ON UPDATE no action;

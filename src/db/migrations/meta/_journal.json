@@ -1,0 +1,83 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1779033173361,
+      "tag": "0000_init",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1779036683940,
+      "tag": "0001_certain_rawhide_kid",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779043434671,
+      "tag": "0002_ambitious_swarm",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1779045599894,
+      "tag": "0003_powerful_diamondback",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1779171450466,
+      "tag": "0004_dry_freak",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1779184989301,
+      "tag": "0005_mute_ozymandias",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1779186188095,
+      "tag": "0006_flaky_enchantress",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1779256106141,
+      "tag": "0007_late_monster_badoon",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1779262779390,
+      "tag": "0008_lucky_hobgoblin",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1779276281139,
+      "tag": "0009_perpetual_lyja",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1781601599047,
+      "tag": "0010_clear_captain_universe",
+      "breakpoints": true
+    }
+  ]
+}
