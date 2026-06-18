@@ -41,6 +41,7 @@ CREATE TABLE "courses" (
 	"course_type" "course_type" DEFAULT 'offline' NOT NULL,
 	"description" text NOT NULL,
 	"image" text,
+	"media_id" uuid,
 	"is_trending" boolean DEFAULT false NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
 	"free_features" text,
@@ -90,6 +91,8 @@ CREATE TABLE "exams" (
 	"negative_marking" boolean DEFAULT false NOT NULL,
 	"negative_marking_value" numeric(5, 2),
 	"question_sheet_id" uuid NOT NULL,
+	"course_id" uuid,
+	"access_plans" text[] DEFAULT ARRAY['free','half','paid']::text[] NOT NULL,
 	"created_by" uuid,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
@@ -123,52 +126,41 @@ CREATE TABLE "exam_attempts" (
 	CONSTRAINT "exam_attempts_user_id_exam_id_unique" UNIQUE("user_id","exam_id")
 );
 --> statement-breakpoint
-CREATE TABLE "announcement_cta_buttons" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"cta_id" uuid NOT NULL,
-	"button_name" varchar(100) NOT NULL,
-	"href" text NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE "announcement_ctas" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"announcement_id" uuid NOT NULL,
-	"title" varchar(200),
-	"description" text
-);
---> statement-breakpoint
 CREATE TABLE "announcement_resources" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"announcement_id" uuid NOT NULL,
-	"material_name" varchar(200),
-	"file_type" varchar(50),
-	"file_size" integer,
-	"url" text
+	"media_id" uuid NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "announcements" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"title" varchar(300) NOT NULL,
 	"image" text,
-	"content" text[] NOT NULL,
-	"announced_date" timestamp with time zone DEFAULT now() NOT NULL,
+	"media_id" uuid,
+	"description" text DEFAULT '' NOT NULL,
+	"privacy" varchar(20) DEFAULT 'public' NOT NULL,
+	"course_id" uuid,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "event_resources" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"event_id" uuid NOT NULL,
+	"media_id" uuid NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "events" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"title" varchar(300) NOT NULL,
-	"description" text NOT NULL,
-	"event_type" varchar(80) DEFAULT 'Other' NOT NULL,
-	"start_date" timestamp with time zone NOT NULL,
-	"end_date" timestamp with time zone NOT NULL,
-	"organizer_name" varchar(200) NOT NULL,
-	"organizer_email" varchar(255) NOT NULL,
-	"organizer_phone" varchar(30),
-	"venue_name" varchar(200) NOT NULL,
-	"venue_address" text NOT NULL,
-	"is_active" boolean DEFAULT true NOT NULL,
+	"description" text DEFAULT '' NOT NULL,
+	"category" varchar(100) DEFAULT 'Other' NOT NULL,
+	"event_date" timestamp with time zone NOT NULL,
+	"address" text,
+	"privacy" varchar(20) DEFAULT 'public' NOT NULL,
+	"course_id" uuid,
+	"image" text,
+	"media_id" uuid,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -177,7 +169,9 @@ CREATE TABLE "class_materials" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"title" varchar(200) NOT NULL,
 	"description" text,
-	"file_url" text NOT NULL,
+	"file_url" text,
+	"media_id" uuid,
+	"course_id" uuid,
 	"created_by" uuid,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
@@ -188,7 +182,25 @@ CREATE TABLE "advertisements" (
 	"title" varchar(200) NOT NULL,
 	"description" text,
 	"image_url" text,
+	"media_id" uuid,
 	"link_url" text,
+	"button_text" varchar(100),
+	"redirect_url" text,
+	"privacy" varchar(20) DEFAULT 'all' NOT NULL,
+	"is_active" boolean DEFAULT true NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "home_videos" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"title" varchar(200) NOT NULL,
+	"description" text,
+	"video_url" text NOT NULL,
+	"video_media_id" uuid,
+	"banner_image_url" text,
+	"banner_media_id" uuid,
+	"position" integer DEFAULT 0 NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
@@ -218,11 +230,24 @@ CREATE TABLE "analytics_daily" (
 	CONSTRAINT "analytics_daily_date_unique" UNIQUE("date")
 );
 --> statement-breakpoint
+CREATE TABLE "analytics_page_views" (
+	"session_token" varchar(255) NOT NULL,
+	"page_path" varchar(500) NOT NULL,
+	"date" date NOT NULL,
+	CONSTRAINT "analytics_page_views_session_token_page_path_date_pk" PRIMARY KEY("session_token","page_path","date")
+);
+--> statement-breakpoint
 CREATE TABLE "analytics_utm_sources" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"date" date NOT NULL,
 	"source" varchar(100) NOT NULL,
 	"visits" integer DEFAULT 0 NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "analytics_visitor_sessions" (
+	"session_token" varchar(255) NOT NULL,
+	"date" date NOT NULL,
+	CONSTRAINT "analytics_visitor_sessions_session_token_date_pk" PRIMARY KEY("session_token","date")
 );
 --> statement-breakpoint
 CREATE TABLE "feedback" (
@@ -231,6 +256,21 @@ CREATE TABLE "feedback" (
 	"email" varchar(255) NOT NULL,
 	"rating" smallint NOT NULL,
 	"feedback_text" text NOT NULL,
+	"admin_reply" text,
+	"replied_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "contact_messages" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"name" varchar(200) NOT NULL,
+	"email" varchar(255) NOT NULL,
+	"phone" varchar(40),
+	"subject" varchar(300) NOT NULL,
+	"message" text NOT NULL,
+	"status" varchar(20) DEFAULT 'pending' NOT NULL,
+	"admin_reply" text,
+	"replied_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
@@ -248,6 +288,7 @@ CREATE TABLE "student_profiles" (
 	"course_id" uuid,
 	"payment_image" text,
 	"citizenship_certificate" text,
+	"initial_verification" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "student_profiles_user_id_unique" UNIQUE("user_id")
@@ -266,6 +307,7 @@ CREATE TABLE "teacher_profiles" (
 	"user_id" uuid NOT NULL,
 	"bio" text,
 	"specialization" varchar(200),
+	"enable_display_in_about" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "teacher_profiles_user_id_unique" UNIQUE("user_id")
@@ -281,18 +323,42 @@ CREATE TABLE "refresh_tokens" (
 	CONSTRAINT "refresh_tokens_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
+CREATE TABLE "media" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"filename" varchar(255) NOT NULL,
+	"original_name" varchar(255) NOT NULL,
+	"mime_type" varchar(100) NOT NULL,
+	"size" integer NOT NULL,
+	"url" text NOT NULL,
+	"s3_key" text,
+	"uploaded_by" uuid,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 ALTER TABLE "user_payments" ADD CONSTRAINT "user_payments_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "courses" ADD CONSTRAINT "courses_media_id_media_id_fk" FOREIGN KEY ("media_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "question_options" ADD CONSTRAINT "question_options_question_id_questions_id_fk" FOREIGN KEY ("question_id") REFERENCES "public"."questions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "questions" ADD CONSTRAINT "questions_sheet_id_question_sheets_id_fk" FOREIGN KEY ("sheet_id") REFERENCES "public"."question_sheets"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "exams" ADD CONSTRAINT "exams_question_sheet_id_question_sheets_id_fk" FOREIGN KEY ("question_sheet_id") REFERENCES "public"."question_sheets"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "exams" ADD CONSTRAINT "exams_course_id_courses_id_fk" FOREIGN KEY ("course_id") REFERENCES "public"."courses"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "exam_attempt_answers" ADD CONSTRAINT "exam_attempt_answers_attempt_id_exam_attempts_id_fk" FOREIGN KEY ("attempt_id") REFERENCES "public"."exam_attempts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "exam_attempt_answers" ADD CONSTRAINT "exam_attempt_answers_question_id_questions_id_fk" FOREIGN KEY ("question_id") REFERENCES "public"."questions"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "exam_attempt_answers" ADD CONSTRAINT "exam_attempt_answers_selected_option_id_question_options_id_fk" FOREIGN KEY ("selected_option_id") REFERENCES "public"."question_options"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "exam_attempts" ADD CONSTRAINT "exam_attempts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "exam_attempts" ADD CONSTRAINT "exam_attempts_exam_id_exams_id_fk" FOREIGN KEY ("exam_id") REFERENCES "public"."exams"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "announcement_cta_buttons" ADD CONSTRAINT "announcement_cta_buttons_cta_id_announcement_ctas_id_fk" FOREIGN KEY ("cta_id") REFERENCES "public"."announcement_ctas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "announcement_ctas" ADD CONSTRAINT "announcement_ctas_announcement_id_announcements_id_fk" FOREIGN KEY ("announcement_id") REFERENCES "public"."announcements"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "announcement_resources" ADD CONSTRAINT "announcement_resources_announcement_id_announcements_id_fk" FOREIGN KEY ("announcement_id") REFERENCES "public"."announcements"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "announcement_resources" ADD CONSTRAINT "announcement_resources_media_id_media_id_fk" FOREIGN KEY ("media_id") REFERENCES "public"."media"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "announcements" ADD CONSTRAINT "announcements_media_id_media_id_fk" FOREIGN KEY ("media_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "announcements" ADD CONSTRAINT "announcements_course_id_courses_id_fk" FOREIGN KEY ("course_id") REFERENCES "public"."courses"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "event_resources" ADD CONSTRAINT "event_resources_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "event_resources" ADD CONSTRAINT "event_resources_media_id_media_id_fk" FOREIGN KEY ("media_id") REFERENCES "public"."media"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "events" ADD CONSTRAINT "events_course_id_courses_id_fk" FOREIGN KEY ("course_id") REFERENCES "public"."courses"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "events" ADD CONSTRAINT "events_media_id_media_id_fk" FOREIGN KEY ("media_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "class_materials" ADD CONSTRAINT "class_materials_media_id_media_id_fk" FOREIGN KEY ("media_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "class_materials" ADD CONSTRAINT "class_materials_course_id_courses_id_fk" FOREIGN KEY ("course_id") REFERENCES "public"."courses"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "advertisements" ADD CONSTRAINT "advertisements_media_id_media_id_fk" FOREIGN KEY ("media_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "home_videos" ADD CONSTRAINT "home_videos_video_media_id_media_id_fk" FOREIGN KEY ("video_media_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "home_videos" ADD CONSTRAINT "home_videos_banner_media_id_media_id_fk" FOREIGN KEY ("banner_media_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "active_sessions" ADD CONSTRAINT "active_sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "analytics_utm_sources" ADD CONSTRAINT "analytics_utm_sources_date_analytics_daily_date_fk" FOREIGN KEY ("date") REFERENCES "public"."analytics_daily"("date") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "student_profiles" ADD CONSTRAINT "student_profiles_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -300,4 +366,5 @@ ALTER TABLE "student_profiles" ADD CONSTRAINT "student_profiles_course_id_course
 ALTER TABLE "teacher_courses" ADD CONSTRAINT "teacher_courses_teacher_profile_id_teacher_profiles_id_fk" FOREIGN KEY ("teacher_profile_id") REFERENCES "public"."teacher_profiles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "teacher_courses" ADD CONSTRAINT "teacher_courses_course_id_courses_id_fk" FOREIGN KEY ("course_id") REFERENCES "public"."courses"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "teacher_profiles" ADD CONSTRAINT "teacher_profiles_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "refresh_tokens" ADD CONSTRAINT "refresh_tokens_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "refresh_tokens" ADD CONSTRAINT "refresh_tokens_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "media" ADD CONSTRAINT "media_uploaded_by_users_id_fk" FOREIGN KEY ("uploaded_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;

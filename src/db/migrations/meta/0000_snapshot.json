@@ -1,5 +1,5 @@
 {
-  "id": "ce408034-9ddb-457a-a323-e02badb439b2",
+  "id": "b0c1e55e-f3e6-4f58-90ea-86e2838deda8",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -257,6 +257,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "media_id": {
+          "name": "media_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "is_trending": {
           "name": "is_trending",
           "type": "boolean",
@@ -305,7 +311,21 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "courses_media_id_media_id_fk": {
+          "name": "courses_media_id_media_id_fk",
+          "tableFrom": "courses",
+          "tableTo": "media",
+          "columnsFrom": [
+            "media_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "courses_slug_unique": {
@@ -578,6 +598,19 @@
           "primaryKey": false,
           "notNull": true
         },
+        "course_id": {
+          "name": "course_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "access_plans": {
+          "name": "access_plans",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ARRAY['free','half','paid']::text[]"
+        },
         "created_by": {
           "name": "created_by",
           "type": "uuid",
@@ -612,6 +645,19 @@
             "id"
           ],
           "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "exams_course_id_courses_id_fk": {
+          "name": "exams_course_id_courses_id_fk",
+          "tableFrom": "exams",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -857,110 +903,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.announcement_cta_buttons": {
-      "name": "announcement_cta_buttons",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "cta_id": {
-          "name": "cta_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "button_name": {
-          "name": "button_name",
-          "type": "varchar(100)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "href": {
-          "name": "href",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "announcement_cta_buttons_cta_id_announcement_ctas_id_fk": {
-          "name": "announcement_cta_buttons_cta_id_announcement_ctas_id_fk",
-          "tableFrom": "announcement_cta_buttons",
-          "tableTo": "announcement_ctas",
-          "columnsFrom": [
-            "cta_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.announcement_ctas": {
-      "name": "announcement_ctas",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "announcement_id": {
-          "name": "announcement_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "title": {
-          "name": "title",
-          "type": "varchar(200)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "description": {
-          "name": "description",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "announcement_ctas_announcement_id_announcements_id_fk": {
-          "name": "announcement_ctas_announcement_id_announcements_id_fk",
-          "tableFrom": "announcement_ctas",
-          "tableTo": "announcements",
-          "columnsFrom": [
-            "announcement_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.announcement_resources": {
       "name": "announcement_resources",
       "schema": "",
@@ -978,29 +920,11 @@
           "primaryKey": false,
           "notNull": true
         },
-        "material_name": {
-          "name": "material_name",
-          "type": "varchar(200)",
+        "media_id": {
+          "name": "media_id",
+          "type": "uuid",
           "primaryKey": false,
-          "notNull": false
-        },
-        "file_type": {
-          "name": "file_type",
-          "type": "varchar(50)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "file_size": {
-          "name": "file_size",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "url": {
-          "name": "url",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "notNull": true
         }
       },
       "indexes": {},
@@ -1011,6 +935,19 @@
           "tableTo": "announcements",
           "columnsFrom": [
             "announcement_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "announcement_resources_media_id_media_id_fk": {
+          "name": "announcement_resources_media_id_media_id_fk",
+          "tableFrom": "announcement_resources",
+          "tableTo": "media",
+          "columnsFrom": [
+            "media_id"
           ],
           "columnsTo": [
             "id"
@@ -1048,18 +985,31 @@
           "primaryKey": false,
           "notNull": false
         },
-        "content": {
-          "name": "content",
-          "type": "text[]",
+        "media_id": {
+          "name": "media_id",
+          "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
-        "announced_date": {
-          "name": "announced_date",
-          "type": "timestamp with time zone",
+        "description": {
+          "name": "description",
+          "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "now()"
+          "default": "''"
+        },
+        "privacy": {
+          "name": "privacy",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'public'"
+        },
+        "course_id": {
+          "name": "course_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -1077,7 +1027,93 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "announcements_media_id_media_id_fk": {
+          "name": "announcements_media_id_media_id_fk",
+          "tableFrom": "announcements",
+          "tableTo": "media",
+          "columnsFrom": [
+            "media_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "announcements_course_id_courses_id_fk": {
+          "name": "announcements_course_id_courses_id_fk",
+          "tableFrom": "announcements",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.event_resources": {
+      "name": "event_resources",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "media_id": {
+          "name": "media_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "event_resources_event_id_events_id_fk": {
+          "name": "event_resources_event_id_events_id_fk",
+          "tableFrom": "event_resources",
+          "tableTo": "events",
+          "columnsFrom": [
+            "event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "event_resources_media_id_media_id_fk": {
+          "name": "event_resources_media_id_media_id_fk",
+          "tableFrom": "event_resources",
+          "tableTo": "media",
+          "columnsFrom": [
+            "media_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -1105,63 +1141,52 @@
           "name": "description",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "''"
         },
-        "event_type": {
-          "name": "event_type",
-          "type": "varchar(80)",
+        "category": {
+          "name": "category",
+          "type": "varchar(100)",
           "primaryKey": false,
           "notNull": true,
           "default": "'Other'"
         },
-        "start_date": {
-          "name": "start_date",
+        "event_date": {
+          "name": "event_date",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true
         },
-        "end_date": {
-          "name": "end_date",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "organizer_name": {
-          "name": "organizer_name",
-          "type": "varchar(200)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "organizer_email": {
-          "name": "organizer_email",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "organizer_phone": {
-          "name": "organizer_phone",
-          "type": "varchar(30)",
+        "address": {
+          "name": "address",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "venue_name": {
-          "name": "venue_name",
-          "type": "varchar(200)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "venue_address": {
-          "name": "venue_address",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "is_active": {
-          "name": "is_active",
-          "type": "boolean",
+        "privacy": {
+          "name": "privacy",
+          "type": "varchar(20)",
           "primaryKey": false,
           "notNull": true,
-          "default": true
+          "default": "'public'"
+        },
+        "course_id": {
+          "name": "course_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "image": {
+          "name": "image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "media_id": {
+          "name": "media_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -1179,7 +1204,34 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "events_course_id_courses_id_fk": {
+          "name": "events_course_id_courses_id_fk",
+          "tableFrom": "events",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "events_media_id_media_id_fk": {
+          "name": "events_media_id_media_id_fk",
+          "tableFrom": "events",
+          "tableTo": "media",
+          "columnsFrom": [
+            "media_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -1213,7 +1265,19 @@
           "name": "file_url",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "media_id": {
+          "name": "media_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "course_id": {
+          "name": "course_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_by": {
           "name": "created_by",
@@ -1237,7 +1301,34 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "class_materials_media_id_media_id_fk": {
+          "name": "class_materials_media_id_media_id_fk",
+          "tableFrom": "class_materials",
+          "tableTo": "media",
+          "columnsFrom": [
+            "media_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "class_materials_course_id_courses_id_fk": {
+          "name": "class_materials_course_id_courses_id_fk",
+          "tableFrom": "class_materials",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -1273,11 +1364,36 @@
           "primaryKey": false,
           "notNull": false
         },
+        "media_id": {
+          "name": "media_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "link_url": {
           "name": "link_url",
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "button_text": {
+          "name": "button_text",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "redirect_url": {
+          "name": "redirect_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "privacy": {
+          "name": "privacy",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'all'"
         },
         "is_active": {
           "name": "is_active",
@@ -1302,7 +1418,132 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "advertisements_media_id_media_id_fk": {
+          "name": "advertisements_media_id_media_id_fk",
+          "tableFrom": "advertisements",
+          "tableTo": "media",
+          "columnsFrom": [
+            "media_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.home_videos": {
+      "name": "home_videos",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "video_url": {
+          "name": "video_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "video_media_id": {
+          "name": "video_media_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "banner_image_url": {
+          "name": "banner_image_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "banner_media_id": {
+          "name": "banner_media_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "home_videos_video_media_id_media_id_fk": {
+          "name": "home_videos_video_media_id_media_id_fk",
+          "tableFrom": "home_videos",
+          "tableTo": "media",
+          "columnsFrom": [
+            "video_media_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "home_videos_banner_media_id_media_id_fk": {
+          "name": "home_videos_banner_media_id_media_id_fk",
+          "tableFrom": "home_videos",
+          "tableTo": "media",
+          "columnsFrom": [
+            "banner_media_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -1470,6 +1711,46 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.analytics_page_views": {
+      "name": "analytics_page_views",
+      "schema": "",
+      "columns": {
+        "session_token": {
+          "name": "session_token",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "page_path": {
+          "name": "page_path",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "analytics_page_views_session_token_page_path_date_pk": {
+          "name": "analytics_page_views_session_token_page_path_date_pk",
+          "columns": [
+            "session_token",
+            "page_path",
+            "date"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.analytics_utm_sources": {
       "name": "analytics_utm_sources",
       "schema": "",
@@ -1523,6 +1804,39 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.analytics_visitor_sessions": {
+      "name": "analytics_visitor_sessions",
+      "schema": "",
+      "columns": {
+        "session_token": {
+          "name": "session_token",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "analytics_visitor_sessions_session_token_date_pk": {
+          "name": "analytics_visitor_sessions_session_token_date_pk",
+          "columns": [
+            "session_token",
+            "date"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.feedback": {
       "name": "feedback",
       "schema": "",
@@ -1557,6 +1871,94 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "admin_reply": {
+          "name": "admin_reply",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "replied_at": {
+          "name": "replied_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.contact_messages": {
+      "name": "contact_messages",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phone": {
+          "name": "phone",
+          "type": "varchar(40)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "subject": {
+          "name": "subject",
+          "type": "varchar(300)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "message": {
+          "name": "message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "admin_reply": {
+          "name": "admin_reply",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "replied_at": {
+          "name": "replied_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -1657,6 +2059,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "initial_verification": {
+          "name": "initial_verification",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         },
         "created_at": {
           "name": "created_at",
@@ -1820,6 +2229,13 @@
           "primaryKey": false,
           "notNull": false
         },
+        "enable_display_in_about": {
+          "name": "enable_display_in_about",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -1935,6 +2351,89 @@
           ]
         }
       },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.media": {
+      "name": "media",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "filename": {
+          "name": "filename",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "original_name": {
+          "name": "original_name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mime_type": {
+          "name": "mime_type",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "size": {
+          "name": "size",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "url": {
+          "name": "url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "s3_key": {
+          "name": "s3_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "uploaded_by": {
+          "name": "uploaded_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "media_uploaded_by_users_id_fk": {
+          "name": "media_uploaded_by_users_id_fk",
+          "tableFrom": "media",
+          "tableTo": "users",
+          "columnsFrom": [
+            "uploaded_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

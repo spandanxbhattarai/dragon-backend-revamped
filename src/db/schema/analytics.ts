@@ -6,6 +6,7 @@ import {
   timestamp,
   integer,
   date,
+  primaryKey,
 } from 'drizzle-orm/pg-core';
 import { users } from './users';
 
@@ -22,11 +23,24 @@ export const analyticsDaily = pgTable('analytics_daily', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+// One row per visitor session per day. The composite primary key is what makes
+// `onConflictDoNothing()` able to detect a repeat visit — without it every
+// pageview was wrongly counted as a brand-new visitor.
 export const analyticsVisitorSessions = pgTable('analytics_visitor_sessions', {
   sessionToken: varchar('session_token', { length: 255 }).notNull(),
   date: date('date').notNull(),
 }, (t) => ({
-  pk: { columns: [t.sessionToken, t.date] },
+  pk: primaryKey({ columns: [t.sessionToken, t.date] }),
+}));
+
+// One row per (session, page path, day). Lets us count a page view exactly once
+// even if the same page is reloaded or the client retries the request.
+export const analyticsPageViews = pgTable('analytics_page_views', {
+  sessionToken: varchar('session_token', { length: 255 }).notNull(),
+  pagePath: varchar('page_path', { length: 500 }).notNull(),
+  date: date('date').notNull(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.sessionToken, t.pagePath, t.date] }),
 }));
 
 export const analyticsUtmSources = pgTable('analytics_utm_sources', {
@@ -48,6 +62,8 @@ export const activeSessions = pgTable('active_sessions', {
   userAgent: text('user_agent'),
 });
 
+export type AnalyticsVisitorSession = typeof analyticsVisitorSessions.$inferSelect;
+export type AnalyticsPageView = typeof analyticsPageViews.$inferSelect;
 export type AnalyticsDaily = typeof analyticsDaily.$inferSelect;
 export type NewAnalyticsDaily = typeof analyticsDaily.$inferInsert;
 export type AnalyticsUtmSource = typeof analyticsUtmSources.$inferSelect;

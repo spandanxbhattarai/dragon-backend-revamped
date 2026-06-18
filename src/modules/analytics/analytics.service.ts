@@ -2,6 +2,15 @@ import { analyticsRepository } from './analytics.repository';
 
 const toDateString = (d: Date) => d.toISOString().slice(0, 10);
 
+// Visitor/page-view analytics only count the public-facing site. Anything under
+// the authenticated app (the dashboard) is excluded so internal navigation never
+// inflates the numbers.
+const isPublicPath = (pagePath: string | undefined): boolean => {
+  if (!pagePath) return false;
+  const path = pagePath.split('?')[0];
+  return !path.startsWith('/dashboard');
+};
+
 export const analyticsService = {
   heartbeat: async (
     userId: string,
@@ -32,19 +41,30 @@ export const analyticsService = {
     utmSource: string | undefined,
     ipAddress: string | undefined,
   ) => {
+    // Only the public site is tracked — ignore dashboard / app navigation.
+    if (!isPublicPath(pagePath)) {
+      return { ok: true };
+    }
+
     const today = toDateString(new Date());
 
-    const [isNewVisitor] = await Promise.all([
+    // Count this page view at most once per (session, page, day). A reload or a
+    // retried request hits the same key and is ignored.
+    const [isNewVisitor, isNewPageView] = await Promise.all([
       analyticsRepository.trackVisitorSession(sessionToken, today),
-      analyticsRepository.upsertDailyStats(today, 'totalPageViews', 1),
+      analyticsRepository.trackPageView(sessionToken, pagePath, today),
     ]);
+
+    if (isNewPageView) {
+      await analyticsRepository.upsertDailyStats(today, 'totalPageViews', 1);
+    }
 
     if (isNewVisitor) {
       await analyticsRepository.upsertDailyStats(today, 'totalVisitors', 1);
-    }
-
-    if (utmSource) {
-      await analyticsRepository.upsertUtmSource(today, utmSource, 1);
+      // A UTM source is only meaningful on a visitor's first landing of the day.
+      if (utmSource) {
+        await analyticsRepository.upsertUtmSource(today, utmSource, 1);
+      }
     }
 
     return { ok: true };

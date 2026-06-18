@@ -2,6 +2,7 @@ import { db } from '../../db';
 import {
   activeSessions,
   analyticsDaily,
+  analyticsPageViews,
   analyticsUtmSources,
   analyticsVisitorSessions,
   users,
@@ -86,6 +87,22 @@ export const analyticsRepository = {
     return result.length > 0;
   },
 
+  // Records a page view exactly once per (session, page, day). Returns true only
+  // the first time a given page is seen by a session on a day — repeat views
+  // (reloads, retries) conflict on the primary key and return false.
+  trackPageView: async (
+    sessionToken: string,
+    pagePath: string,
+    date: string,
+  ): Promise<boolean> => {
+    const result = await db
+      .insert(analyticsPageViews)
+      .values({ sessionToken, pagePath, date })
+      .onConflictDoNothing()
+      .returning();
+    return result.length > 0;
+  },
+
   upsertUtmSource: async (date: string, source: string, increment: number) => {
     const existing = await db
       .select()
@@ -131,9 +148,11 @@ export const analyticsRepository = {
       todayStatsResult,
       utmResult,
       totalVisitorsResult,
-      uniqueSessionsResult,
+      todayVisitorsResult,
       weeklyVisitorsResult,
+      todayPageViewsResult,
       visitorTrendResult,
+      pageViewTrendResult,
     ] = await Promise.all([
       db.select({ count: count() }).from(users),
       db.select({ count: count() }).from(courses),
@@ -150,30 +169,56 @@ export const analyticsRepository = {
         .groupBy(analyticsUtmSources.source)
         .orderBy(desc(sql`sum(${analyticsUtmSources.visits})`))
         .limit(8),
-      // All-time visitors (sum of daily unique visitors).
-      db
-        .select({ total: sql<number>`coalesce(sum(${analyticsDaily.totalVisitors}), 0)::int` })
-        .from(analyticsDaily),
-      // Distinct visitor sessions ever tracked.
+      // Total visitors = distinct visitor sessions ever (all-time unique sessions).
       db
         .select({ total: sql<number>`count(distinct ${analyticsVisitorSessions.sessionToken})::int` })
         .from(analyticsVisitorSessions),
-      // Visitors over the last 7 days.
+      // Visitors today = distinct sessions seen today.
       db
-        .select({ total: sql<number>`coalesce(sum(${analyticsDaily.totalVisitors}), 0)::int` })
-        .from(analyticsDaily)
-        .where(gte(analyticsDaily.date, sevenDaysAgoDate)),
-      // Per-day series for the last 7 days, for the dashboard graph.
+        .select({ total: sql<number>`count(distinct ${analyticsVisitorSessions.sessionToken})::int` })
+        .from(analyticsVisitorSessions)
+        .where(eq(analyticsVisitorSessions.date, today)),
+      // Weekly visitors = distinct sessions over the last 7 days.
+      db
+        .select({ total: sql<number>`count(distinct ${analyticsVisitorSessions.sessionToken})::int` })
+        .from(analyticsVisitorSessions)
+        .where(gte(analyticsVisitorSessions.date, sevenDaysAgoDate)),
+      // Page views today = unique (session, page) views recorded today.
+      db
+        .select({ total: count() })
+        .from(analyticsPageViews)
+        .where(eq(analyticsPageViews.date, today)),
+      // Per-day distinct visitors for the last 7 days (dashboard graph).
       db
         .select({
-          date: analyticsDaily.date,
-          visitors: analyticsDaily.totalVisitors,
-          pageViews: analyticsDaily.totalPageViews,
+          date: analyticsVisitorSessions.date,
+          visitors: sql<number>`count(distinct ${analyticsVisitorSessions.sessionToken})::int`,
         })
-        .from(analyticsDaily)
-        .where(gte(analyticsDaily.date, sevenDaysAgoDate))
-        .orderBy(analyticsDaily.date),
+        .from(analyticsVisitorSessions)
+        .where(gte(analyticsVisitorSessions.date, sevenDaysAgoDate))
+        .groupBy(analyticsVisitorSessions.date),
+      // Per-day page views for the last 7 days (dashboard graph).
+      db
+        .select({
+          date: analyticsPageViews.date,
+          pageViews: count(),
+        })
+        .from(analyticsPageViews)
+        .where(gte(analyticsPageViews.date, sevenDaysAgoDate))
+        .groupBy(analyticsPageViews.date),
     ]);
+
+    // Merge the two per-day series into one keyed-by-date map for the graph.
+    const trendByDate = new Map<string, { date: string; visitors: number; pageViews: number }>();
+    for (const r of visitorTrendResult) {
+      trendByDate.set(r.date, { date: r.date, visitors: r.visitors ?? 0, pageViews: 0 });
+    }
+    for (const r of pageViewTrendResult) {
+      const existing = trendByDate.get(r.date);
+      if (existing) existing.pageViews = r.pageViews ?? 0;
+      else trendByDate.set(r.date, { date: r.date, visitors: 0, pageViews: r.pageViews ?? 0 });
+    }
+    const visitorTrend = Array.from(trendByDate.values()).sort((a, b) => a.date.localeCompare(b.date));
 
     return {
       totalUsers: totalUsersResult[0]?.count ?? 0,
@@ -184,18 +229,13 @@ export const analyticsRepository = {
       planDistribution: planDistResult.map((r) => ({ plan: r.plan, count: r.count })),
       totalFeedback: totalFeedbackResult[0]?.count ?? 0,
       totalSubscribers: totalSubscribersResult[0]?.count ?? 0,
-      todayPageViews: todayStatsResult[0]?.totalPageViews ?? 0,
-      todayVisitors: todayStatsResult[0]?.totalVisitors ?? 0,
+      todayPageViews: todayPageViewsResult[0]?.total ?? 0,
+      todayVisitors: todayVisitorsResult[0]?.total ?? 0,
       todayNewRegistrations: todayStatsResult[0]?.newRegistrations ?? 0,
       utmSources: utmResult.map((r) => ({ source: r.source, visits: r.visits ?? 0 })),
       totalVisitors: totalVisitorsResult[0]?.total ?? 0,
-      uniqueSessions: uniqueSessionsResult[0]?.total ?? 0,
       weeklyVisitors: weeklyVisitorsResult[0]?.total ?? 0,
-      visitorTrend: visitorTrendResult.map((r) => ({
-        date: r.date,
-        visitors: r.visitors ?? 0,
-        pageViews: r.pageViews ?? 0,
-      })),
+      visitorTrend,
     };
   },
 };
