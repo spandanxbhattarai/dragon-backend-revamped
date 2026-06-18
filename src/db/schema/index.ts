@@ -8,6 +8,7 @@ export * from './events';
 export * from './classMaterials';
 export * from './advertisements';
 export * from './homeVideos';
+export * from './siteContent';
 export * from './analytics';
 export * from './feedback';
 export * from './contactMessages';

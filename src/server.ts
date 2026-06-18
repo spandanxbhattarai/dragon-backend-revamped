@@ -3,6 +3,7 @@ import app from './app';
 import { env } from './config/env';
 import { db } from './db';
 import { seedAdmin } from './db/seed';
+import { siteContentService } from './modules/site-content/site-content.service';
 import { sql } from 'drizzle-orm';
 
 const start = async () => {
@@ -11,6 +12,7 @@ const start = async () => {
     console.log('Database connection established');
 
     await seedAdmin();
+    await siteContentService.seedDefaults();
 
     app.listen(env.PORT, () => {
       console.log(`Dragon Institute API running on port ${env.PORT} [${env.NODE_ENV}]`);
