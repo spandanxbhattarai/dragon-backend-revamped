@@ -1,44 +1,44 @@
 import { Router } from 'express';
-import { homeVideosController } from './home-videos.controller';
+import { galleryController } from './gallery.controller';
 import { authenticate } from '../../middlewares/auth.middleware';
 import { requireRole } from '../../middlewares/role.middleware';
 import { validate } from '../../middlewares/validate.middleware';
 import {
-  createHomeVideoSchema,
-  updateHomeVideoSchema,
-  listHomeVideosSchema,
-} from './home-videos.schema';
+  createGallerySchema,
+  updateGallerySchema,
+  listGallerySchema,
+} from './gallery.schema';
 
 const router = Router();
 
-router.get('/', validate(listHomeVideosSchema), homeVideosController.list);
-router.get('/:id', homeVideosController.getById);
+router.get('/', validate(listGallerySchema), galleryController.list);
+router.get('/:id', galleryController.getById);
 router.post(
   '/',
   authenticate,
   requireRole(['admin']),
-  validate(createHomeVideoSchema),
-  homeVideosController.create as any,
+  validate(createGallerySchema),
+  galleryController.create as any,
 );
 router.put(
   '/:id',
   authenticate,
   requireRole(['admin']),
-  validate(updateHomeVideoSchema),
-  homeVideosController.update as any,
+  validate(updateGallerySchema),
+  galleryController.update as any,
 );
 router.patch(
   '/:id',
   authenticate,
   requireRole(['admin']),
-  validate(updateHomeVideoSchema),
-  homeVideosController.update as any,
+  validate(updateGallerySchema),
+  galleryController.update as any,
 );
 router.delete(
   '/:id',
   authenticate,
   requireRole(['admin']),
-  homeVideosController.remove as any,
+  galleryController.remove as any,
 );
 
 export default router;

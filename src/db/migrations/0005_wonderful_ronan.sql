@@ -1,0 +1,1 @@
+ALTER TABLE "courses" ADD COLUMN "views" integer DEFAULT 0 NOT NULL;

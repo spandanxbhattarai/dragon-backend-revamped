@@ -21,6 +21,7 @@ const sanitize = (html: string): string =>
 const sanitizeCourseHtml = (input: CreateCourseInput | UpdateCourseInput) => ({
   ...input,
   description: input.description ? sanitize(input.description) : input.description,
+  information: input.information ? sanitize(input.information) : input.information,
   freeFeatures: input.freeFeatures ? sanitize(input.freeFeatures) : input.freeFeatures,
   halfFeatures: input.halfFeatures ? sanitize(input.halfFeatures) : input.halfFeatures,
   paidFeatures: input.paidFeatures ? sanitize(input.paidFeatures) : input.paidFeatures,
@@ -51,10 +52,10 @@ export const coursesService = {
   },
 
   listCourses: async (query: ListCoursesQuery) => {
-    const { page, limit, courseType, search, isTrending } = query;
+    const { page, limit, courseType, search, isTrending, categoryId, uncategorized } = query;
     const { offset } = paginate({ page, limit });
     const result = await coursesRepository.findAll(
-      { courseType, search, isTrending, activeOnly: true },
+      { courseType, search, isTrending, categoryId, uncategorized, activeOnly: true },
       { offset, limit },
     );
     return {
@@ -88,6 +89,12 @@ export const coursesService = {
     return course;
   },
 
+  // The authenticated student's own enrolled course, including `information`.
+  // Returns null when the user isn't enrolled in any course.
+  getMyCourse: async (userId: string) => {
+    return coursesRepository.findEnrolledByUser(userId);
+  },
+
   updateCourse: async (id: string, input: UpdateCourseInput) => {
     const existing = await coursesRepository.findById(id);
     if (!existing) throw new NotFoundError('Course not found');
@@ -109,5 +116,17 @@ export const coursesService = {
     const course = await coursesRepository.findById(id);
     if (!course) throw new NotFoundError('Course not found');
     await coursesRepository.remove(id);
+  },
+
+  // Records a public page view (dedupe is handled client-side via localStorage).
+  recordView: async (id: string) => {
+    const views = await coursesRepository.incrementViews(id);
+    if (views === null) throw new NotFoundError('Course not found');
+    return { views };
+  },
+
+  // Admin analytics: courses ranked by view count.
+  getTopViewed: async (limit = 10) => {
+    return coursesRepository.findTopViewed(limit);
   },
 };

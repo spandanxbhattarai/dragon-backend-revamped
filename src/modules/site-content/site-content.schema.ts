@@ -41,6 +41,19 @@ const homeAdvisorSchema = z.object({
   quotes: z.array(z.string()).min(1),
 });
 
+const homeLiveClassSchema = z.object({
+  // When false, the public live-class indicator/CTA is hidden entirely.
+  isLive: z.boolean(),
+  title: z.string(),
+  description: z.string(),
+  instructor: z.string(),
+  // Zoom (or any) join link — include the meeting password in the link's pwd
+  // param. Shown publicly so anyone can join.
+  joinUrl: z.string(),
+  // Optional embeddable stream (e.g. YouTube live) played inline in the modal.
+  embedUrl: z.string(),
+});
+
 const aboutHeroSchema = z.object({
   eyebrow: z.string(),
   heading: z.string(),
@@ -75,6 +88,7 @@ export const sectionSchemas = {
   'home.hero': homeHeroSchema,
   'home.stats': homeStatsSchema,
   'home.advisor': homeAdvisorSchema,
+  'home.liveClass': homeLiveClassSchema,
   'about.hero': aboutHeroSchema,
   'about.mission': aboutMissionSchema,
   'about.stats': aboutStatsSchema,
@@ -137,6 +151,15 @@ export const DEFAULT_CONTENT: Record<SiteContentKey, unknown> = {
       'I am pleased to extend my best wishes to Dragon Academy, which has been instrumental in preparing students for B.E., B.Arch., and B.Sc. CSIT entrance exams. As the Campus Chief of Patan Multiple Campus, I commend the academy’s dedication to academic excellence and skill development.',
       'With a team of highly experienced educators and mentors, Dragon Academy ensures that students receive the best guidance and support. With the right effort and determination, students can achieve their goals and make meaningful contributions to society. I encourage all learners to stay committed and get benefited from the opportunities provided.',
     ],
+  },
+  'home.liveClass': {
+    isLive: false,
+    title: 'Live Class in Session',
+    description:
+      'Join our ongoing live class and see how our instructors teach — open to everyone.',
+    instructor: '',
+    joinUrl: '',
+    embedUrl: '',
   },
   'about.hero': {
     eyebrow: '00 — Our Story',
