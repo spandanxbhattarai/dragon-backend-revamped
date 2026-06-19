@@ -1,5 +1,5 @@
 {
-  "id": "ce98216e-cf35-4e64-aa79-365fe444c2c0",
+  "id": "c1b228de-8896-45da-9f52-58a9ee1a8842",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -196,6 +196,73 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.categories": {
+      "name": "categories",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(120)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "slug": {
+          "name": "slug",
+          "type": "varchar(140)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "categories_name_unique": {
+          "name": "categories_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        },
+        "categories_slug_unique": {
+          "name": "categories_slug_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "slug"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.courses": {
       "name": "courses",
       "schema": "",
@@ -231,6 +298,13 @@
           "primaryKey": false,
           "notNull": false
         },
+        "discount": {
+          "name": "discount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
         "duration_days": {
           "name": "duration_days",
           "type": "integer",
@@ -250,6 +324,18 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "information": {
+          "name": "information",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "category_id": {
+          "name": "category_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         },
         "image": {
           "name": "image",
@@ -276,6 +362,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": true
+        },
+        "views": {
+          "name": "views",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         },
         "free_features": {
           "name": "free_features",
@@ -312,6 +405,19 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "courses_category_id_categories_id_fk": {
+          "name": "courses_category_id_categories_id_fk",
+          "tableFrom": "courses",
+          "tableTo": "categories",
+          "columnsFrom": [
+            "category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
         "courses_media_id_media_id_fk": {
           "name": "courses_media_id_media_id_fk",
           "tableFrom": "courses",
@@ -1439,8 +1545,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.home_videos": {
-      "name": "home_videos",
+    "public.gallery_items": {
+      "name": "gallery_items",
       "schema": "",
       "columns": {
         "id": {
@@ -1462,26 +1568,34 @@
           "primaryKey": false,
           "notNull": false
         },
-        "video_url": {
-          "name": "video_url",
+        "media_type": {
+          "name": "media_type",
+          "type": "gallery_media_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'image'"
+        },
+        "media_url": {
+          "name": "media_url",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "video_media_id": {
-          "name": "video_media_id",
+        "media_id": {
+          "name": "media_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
-        "banner_image_url": {
-          "name": "banner_image_url",
+        "thumbnail_url": {
+          "name": "thumbnail_url",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "banner_media_id": {
-          "name": "banner_media_id",
+        "thumbnail_media_id": {
+          "name": "thumbnail_media_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
@@ -1517,12 +1631,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "home_videos_video_media_id_media_id_fk": {
-          "name": "home_videos_video_media_id_media_id_fk",
-          "tableFrom": "home_videos",
+        "gallery_items_media_id_media_id_fk": {
+          "name": "gallery_items_media_id_media_id_fk",
+          "tableFrom": "gallery_items",
           "tableTo": "media",
           "columnsFrom": [
-            "video_media_id"
+            "media_id"
           ],
           "columnsTo": [
             "id"
@@ -1530,12 +1644,12 @@
           "onDelete": "set null",
           "onUpdate": "no action"
         },
-        "home_videos_banner_media_id_media_id_fk": {
-          "name": "home_videos_banner_media_id_media_id_fk",
-          "tableFrom": "home_videos",
+        "gallery_items_thumbnail_media_id_media_id_fk": {
+          "name": "gallery_items_thumbnail_media_id_media_id_fk",
+          "tableFrom": "gallery_items",
           "tableTo": "media",
           "columnsFrom": [
-            "banner_media_id"
+            "thumbnail_media_id"
           ],
           "columnsTo": [
             "id"
@@ -2519,6 +2633,14 @@
         "submitted",
         "expired",
         "abandoned"
+      ]
+    },
+    "public.gallery_media_type": {
+      "name": "gallery_media_type",
+      "schema": "public",
+      "values": [
+        "image",
+        "video"
       ]
     },
     "public.student_plan": {
