@@ -15,34 +15,6 @@
       "when": 1781772519660,
       "tag": "0001_sudden_thaddeus_ross",
       "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1781861750886,
-      "tag": "0002_strange_sebastian_shaw",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1781867907711,
-      "tag": "0003_lowly_speedball",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1781867936613,
-      "tag": "0004_nebulous_rumiko_fujikawa",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1781885677047,
-      "tag": "0005_wonderful_ronan",
-      "breakpoints": true
     }
   ]
 }

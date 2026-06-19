@@ -1,1 +1,0 @@
-DROP TABLE "home_videos" CASCADE;
