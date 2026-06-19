@@ -1,4 +1,5 @@
 export * from './users';
+export * from './categories';
 export * from './courses';
 export * from './questions';
 export * from './exams';
@@ -7,7 +8,7 @@ export * from './announcements';
 export * from './events';
 export * from './classMaterials';
 export * from './advertisements';
-export * from './homeVideos';
+export * from './gallery';
 export * from './siteContent';
 export * from './analytics';
 export * from './feedback';

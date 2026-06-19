@@ -7,9 +7,25 @@ import { createCourseSchema, updateCourseSchema, listCoursesSchema } from './cou
 
 const router = Router();
 
-// Public routes (active courses only, trending first)
+// Public routes (active courses only, trending first). These never expose the
+// `information` field.
 router.get('/', validate(listCoursesSchema), coursesController.list);
 router.get('/slug/:slug', coursesController.getBySlug);
+
+// The logged-in student's own enrolled course, including `information`.
+// Must be declared before '/:id' so "me" isn't treated as an id.
+router.get('/me', authenticate, coursesController.getMyCourse as any);
+
+// Public: record a course page view (dedup handled client-side via localStorage).
+router.post('/:id/view', coursesController.recordView);
+
+// Admin analytics: courses ranked by view count.
+router.get(
+  '/admin/views',
+  authenticate,
+  requireRole(['admin']),
+  coursesController.topViewed as any,
+);
 
 // Admin routes (must be before /:id to avoid param collision)
 router.get(
@@ -20,7 +36,8 @@ router.get(
   coursesController.listAll as any,
 );
 
-router.get('/:id', coursesController.getById);
+// Single course by id includes `information`, so it's admin-only.
+router.get('/:id', authenticate, requireRole(['admin']), coursesController.getById as any);
 
 router.post(
   '/',

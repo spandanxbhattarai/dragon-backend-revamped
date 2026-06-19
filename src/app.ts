@@ -10,6 +10,7 @@ import { configurePassport } from './modules/auth/services/passport.service';
 import authRoutes from './modules/auth/auth.routes';
 import userRoutes from './modules/users/users.routes';
 import courseRoutes from './modules/courses/courses.routes';
+import categoryRoutes from './modules/categories/categories.routes';
 import questionSheetRoutes from './modules/questions/questions.routes';
 import examRoutes from './modules/exams/exams.routes';
 import examAttemptRoutes from './modules/exam-attempts/exam-attempts.routes';
@@ -18,7 +19,7 @@ import announcementRoutes from './modules/announcements/announcements.routes';
 import eventRoutes from './modules/events/events.routes';
 import classMaterialRoutes from './modules/class-materials/class-materials.routes';
 import advertisementRoutes from './modules/advertisements/advertisements.routes';
-import homeVideosRoutes from './modules/home-videos/home-videos.routes';
+import galleryRoutes from './modules/gallery/gallery.routes';
 import siteContentRoutes from './modules/site-content/site-content.routes';
 import feedbackRoutes from './modules/feedback/feedback.routes';
 import contactRoutes from './modules/contact/contact.routes';
@@ -26,6 +27,7 @@ import subscriberRoutes from './modules/subscribers/subscribers.routes';
 import analyticsRoutes from './modules/analytics/analytics.routes';
 import fileRoutes from './modules/files/files.routes';
 import mediaRoutes from './modules/media/media.routes';
+import chatbotRoutes from './modules/chatbot/chatbot.routes';
 
 configurePassport();
 
@@ -48,6 +50,7 @@ app.get('/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().to
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/courses', courseRoutes);
+app.use('/api/categories', categoryRoutes);
 app.use('/api/question-sheets', questionSheetRoutes);
 app.use('/api/exams', examRoutes);
 app.use('/api/exam-attempts', examAttemptRoutes);
@@ -56,7 +59,7 @@ app.use('/api/announcements', announcementRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/class-materials', classMaterialRoutes);
 app.use('/api/advertisements', advertisementRoutes);
-app.use('/api/home-videos', homeVideosRoutes);
+app.use('/api/gallery', galleryRoutes);
 app.use('/api/site-content', siteContentRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/contact', contactRoutes);
@@ -64,6 +67,7 @@ app.use('/api/subscribers', subscriberRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/media', mediaRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 app.use(globalErrorHandler);
 

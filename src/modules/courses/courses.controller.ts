@@ -44,6 +44,15 @@ export const coursesController = {
     }
   },
 
+  getMyCourse: async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const course = await coursesService.getMyCourse(req.user!.userId);
+      ok(res, course);
+    } catch (err) {
+      next(err);
+    }
+  },
+
   create: async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const course = await coursesService.createCourse(req.body as CreateCourseInput);
@@ -66,6 +75,25 @@ export const coursesController = {
     try {
       await coursesService.deleteCourse(requireParam(req, 'id'));
       noContent(res);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  recordView: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await coursesService.recordView(requireParam(req, 'id'));
+      ok(res, result);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  topViewed: async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const limit = Math.min(Number(req.query.limit) || 10, 50);
+      const data = await coursesService.getTopViewed(limit);
+      ok(res, data);
     } catch (err) {
       next(err);
     }

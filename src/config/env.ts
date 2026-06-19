@@ -23,6 +23,8 @@ const envSchema = z.object({
   EMAIL_FROM_NAME: z.string().default('Dragon Education Foundation'),
   EMAIL_FROM_ADDRESS: z.string().email(),
   CLOUDFLARE_TURNSTILE_SECRET_KEY: z.string().optional(),
+  GEMINI_API_KEY: z.string().min(1),
+  GEMINI_MODEL: z.string().default('gemini-flash-latest'),
 });
 
 const parsed = envSchema.safeParse(process.env);
